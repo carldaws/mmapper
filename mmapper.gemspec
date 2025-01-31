@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name          = "mmapper"
-  spec.version       = "0.1.0"
+  spec.version       = "1.0.0"
   spec.authors       = ["Carl Dawson"]
   spec.email         = ["email@carldaws.com"]
   spec.summary       = "Mmap-ed files using Go and FFI."
@@ -11,4 +11,5 @@ Gem::Specification.new do |spec|
   spec.files         = Dir["lib/**/*.rb", "ext/mmap.go", "README.md"]
   spec.require_paths = ["lib"]
   spec.extensions    = ["ext/extconf.rb"]
+  spec.add_runtime_dependency "ffi", "~> 1.15"
 end
