@@ -1,0 +1,9 @@
+# Built shared libraries
+ext/libmmapper.*
+ext/mmapper.dll
+
+# Text files for testing
+*.txt
+
+# Built gems
+*.gem
