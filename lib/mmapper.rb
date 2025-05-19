@@ -1,45 +1,61 @@
-require 'ffi'
+require 'mmapper/mmapper'
 
 module Mmapper
-  extend FFI::Library
-
-  LIB_DIR = File.expand_path("../../ext", __FILE__)
-
-  LIB_NAME =
-    case RUBY_PLATFORM
-    when /darwin/ then "libmmapper.dylib"
-    when /mingw|mswin/ then "mmapper.dll"
-    else "libmmapper.so"
-    end
-
-  LIB_PATH = File.join(LIB_DIR, LIB_NAME)
-
-  unless File.exist?(LIB_PATH)
-    Dir.chdir(LIB_DIR) do
-      puts "Compiling Go shared library for #{RUBY_PLATFORM}..."
-      system("go build -o #{LIB_NAME} -buildmode=c-shared .") || raise("Go build failed")
-    end
-  end
-
-  ffi_lib LIB_PATH
-
-  attach_function :create_mmapper, :CreateMmapper, [:string], :int
-  attach_function :find_matching_line, :FindMatchingLine, [:int, :string], :string
-
-  class Instance
-    def initialize(filename)
-      @mmapper_id = Mmapper.create_mmapper(filename)
-      raise "Failed to load file: #{filename}" if @mmapper_id < 0
-    end
-
+  class File
     def find_matching_line(prefix)
-      result = Mmapper.find_matching_line(@mmapper_id, prefix)
-      return nil if result.nil? || result.empty?
-      result
-    end
-  end
+      low = 0
+      high = size
 
-  def self.load_file(filename)
-    Instance.new(filename)
+      while low < high
+        mid = (low + high) / 2
+        line_start = find_line_start(mid)
+        line = read_line_at(line_start)
+
+        return nil if line.nil?
+
+        if line < prefix
+          low = mid + 1
+        else
+          high = mid
+        end
+
+      end
+
+      final_line_start = find_line_start(low)
+      line = read_line_at(final_line_start)
+
+      if line&.start_with?(prefix)
+        line
+      else
+        nil
+      end
+    end
+
+    private
+
+    def find_line_start(pos)
+      pos = [pos, size - 1].min
+      pos -= 1 while pos > 0 && read(pos, 1) != "\n"
+      pos += 1 if pos != 0
+      pos
+    end
+
+    def read_line_at(pos)
+      buf = +''
+      chunk_size = 64
+      while pos < size
+        safe_len = [size - pos, chunk_size].min
+        chunk = read(pos, safe_len)
+        newline_idx = chunk.index("\n")
+        if newline_idx
+          buf << chunk[0..newline_idx]
+          break
+        else
+          buf << chunk
+          pos += chunk_size
+        end
+      end
+      buf.empty? ? nil : buf.chomp
+    end
   end
 end
