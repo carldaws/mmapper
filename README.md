@@ -3,7 +3,7 @@
 ## Overview
 Mmapper is a Ruby gem that provides a high-performance interface for **memory-mapping (mmap) files** using a C extension. This allows efficient read access to large files without loading them into memory. As a proof of concept, a binary search function has been implemented to quickly find lines that match a given prefix.
 
-For testing purposes, the ICANN .com zone file (22.54gb, over 400 million lines) was loaded with Mmapper and the average time to perform a binary search for a given string was 4.56ms (n=1000), see `benchmark_mmapper.rb`.
+For testing purposes, the ICANN .com zone file (24.39gb, over 400 million lines) was loaded with Mmapper and the average time to perform a binary search for a given string was ~0.2ms (n=1000), see `benchmark_mmapper.rb`.
 
 ## Features
 - **Memory-maps large files** for fast, low-memory access.
